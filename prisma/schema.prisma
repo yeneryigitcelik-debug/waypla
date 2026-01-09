@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UserRole {
+  CUSTOMER
+  BUSINESS
+  PARTNER
+  ADMIN
+}
+
+enum PolicyStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+enum ClaimStatus {
+  CREATED
+  REVIEW
+  APPROVED
+  REPAIR
+  REPLACED
+  PAID
+  REJECTED
+}
+
+enum CoverageType {
+  EXTENDED_WARRANTY
+  ACCIDENTAL_DAMAGE
+  FULL_COVERAGE
+  THEFT_LOSS
+}
+
+enum TermType {
+  MONTHLY
+  YEARLY
+  ONE_TIME
+}
+
+enum PartnerType {
+  RETAIL
+  ECOMMERCE
+  OPERATOR
+  BANK
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?  // hashed
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  devices   Device[]
+  policies  Policy[]
+  claims    Claim[]
+  auditLogs AuditLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Device {
+  id            String    @id @default(cuid())
+  userId        String
+  category      String    // phone, laptop, tablet, etc.
+  brand         String
+  model         String
+  purchaseDate  DateTime
+  declaredValue Float     // in TRY
+  serialNumber  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policies Policy[]
+
+  @@index([userId])
+}
+
+model Plan {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  name          String
+  description   String?
+  coverageType  CoverageType
+  termType      TermType
+  basePrice     Float         // base annual price
+  deductibleRules Json        // { type: "percentage" | "fixed", value: number }
+  limits        Json          // { maxClaims: number, maxAmount: number }
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  policies      Policy[]
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+model Policy {
+  id          String       @id @default(cuid())
+  userId      String
+  deviceId    String
+  planId      String
+  status      PolicyStatus @default(PENDING)
+  startAt     DateTime?
+  endAt       DateTime?
+  paymentMode String       // subscription, one_time
+  premium     Float
+  documentUrl String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device  Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  plan    Plan     @relation(fields: [planId], references: [id])
+  claims  Claim[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([deviceId])
+}
+
+model Claim {
+  id          String      @id @default(cuid())
+  policyId    String
+  userId      String
+  status      ClaimStatus @default(CREATED)
+  incidentAt  DateTime
+  description String
+  attachments Json?       // array of file URLs
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([policyId])
+  @@index([status])
+}
+
+model Partner {
+  id         String      @id @default(cuid())
+  name       String
+  type       PartnerType
+  apiKeyHash String      @unique
+  webhookUrl String?
+  status     String      @default("active") // active, suspended
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([apiKeyHash])
+}
+
+model ServiceCenter {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  district  String
+  address   String?
+  phone     String?
+  email     String?
+  categories Json    // array of device categories
+  slaDays   Int      @default(7)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([isActive])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String   // create, update, delete, etc.
+  entity    String   // User, Policy, Claim, etc.
+  entityId String
+  meta      Json?    // additional data
+  createdAt DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
