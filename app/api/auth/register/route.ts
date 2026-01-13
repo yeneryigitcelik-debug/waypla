@@ -4,20 +4,23 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
+  name: z.string().min(2, "İsim en az 2 karakter olmalı"),
+  email: z.string().email("Geçerli bir email adresi girin"),
+  password: z.string().min(6, "Şifre en az 6 karakter olmalı"),
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { name, email, password } = registerSchema.parse(body);
+    
+    console.log("[REGISTER] İstek alındı:", { email, name });
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
+    console.log("[REGISTER] Kullanıcı kontrolü tamamlandı:", !!existingUser);
 
     if (existingUser) {
       return NextResponse.json(
@@ -29,15 +32,25 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user with profile
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
         role: "CUSTOMER",
+        profile: {
+          create: {
+            name,
+          },
+        },
+      },
+      include: {
+        profile: true,
       },
     });
+    
+    console.log("[REGISTER] Kullanıcı başarıyla oluşturuldu:", user.id);
 
     return NextResponse.json(
       { message: "Kayıt başarılı", userId: user.id },
@@ -45,14 +58,37 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const firstError = error.issues[0];
+      const errorMessage = firstError.message || "Geçersiz veri";
       return NextResponse.json(
-        { error: "Geçersiz veri", details: error.issues },
+        { error: errorMessage },
         { status: 400 }
       );
     }
 
+    console.error("Register error:", error);
+    
+    // Better error messaging
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
+    console.error("[REGISTER] Hata detayları:", { errorMessage, errorType: error?.constructor?.name });
+    
+    // Check for specific database errors
+    if (errorMessage.includes("Authentication failed") || errorMessage.includes("FATAL")) {
+      return NextResponse.json(
+        { error: "Veritabanı bağlantısı sorusu. Lütfen biraz sonra tekrar deneyin. (DB_CONNECTION_ERROR)" },
+        { status: 503 }
+      );
+    }
+    
+    if (errorMessage.includes("Unique constraint failed")) {
+      return NextResponse.json(
+        { error: "Bu email adresi zaten kullanılıyor" },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: "Bir hata oluştu" },
+      { error: "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin." },
       { status: 500 }
     );
   }

@@ -1,5 +1,7 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import type { JWT } from "next-auth/jwt";
+import type { Session, User } from "next-auth";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 
@@ -8,7 +10,7 @@ if (!prisma) {
   console.error("Prisma client is not initialized");
 }
 
-const authConfig = {
+const authConfig: NextAuthConfig = {
   providers: [
     Credentials({
       credentials: {
@@ -55,14 +57,14 @@ const authConfig = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT; user?: User | null }) {
       if (user) {
-        token.role = (user as any).role;
+        token.role = user.role as string;
         token.id = user.id as string;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
@@ -74,7 +76,7 @@ const authConfig = {
     signIn: "/giris",
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "fallback-secret-for-development-min-32-chars-long",
   trustHost: true,

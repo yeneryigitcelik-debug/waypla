@@ -34,12 +34,13 @@ export function Footer() {
               <li><Link href="/planlar" className="hover:text-accent">Laptop Sigortası</Link></li>
               <li><Link href="/planlar" className="hover:text-accent">Tablet Güvencesi</Link></li>
               <li><Link href="/planlar" className="hover:text-accent">Uzatılmış Garanti</Link></li>
+              <li><Link href="/bakim-paketleri" className="hover:text-accent">Bakım Paketleri</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold text-[#111418] dark:text-white mb-4">Destek</h4>
             <ul className="space-y-3 text-sm text-gray-500 dark:text-gray-400">
-              <li><Link href="/hasar/bildir" className="hover:text-accent">Hasar Bildirimi</Link></li>
+              <li><Link href="/hasar-bildir" className="hover:text-accent">Hasar Bildirimi</Link></li>
               <li><Link href="/hasar-yonetimi" className="hover:text-accent">Servis Takibi</Link></li>
               <li><Link href="/sss" className="hover:text-accent">Sıkça Sorulanlar</Link></li>
               <li><Link href="/iletisim" className="hover:text-accent">İletişim</Link></li>
@@ -51,7 +52,7 @@ export function Footer() {
               <li><Link href="/hakkimizda" className="hover:text-accent">Hakkımızda</Link></li>
               <li><Link href="/is-ortaklari" className="hover:text-accent">İş Ortaklığı</Link></li>
               <li><Link href="/kurumsal" className="hover:text-accent">Kariyer</Link></li>
-              <li><Link href="#" className="hover:text-accent">Yatırımcı İlişkileri</Link></li>
+              <li><Link href="/hukuk/kvkk" className="hover:text-accent">Gizlilik Politikası</Link></li>
             </ul>
           </div>
         </div>

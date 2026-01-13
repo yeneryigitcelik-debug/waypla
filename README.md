@@ -201,10 +201,26 @@ npm run prisma:migrate
 
 ## 🚧 Geliştirme Notları
 
-- Tüm marka metinleri `lib/brand.ts` dosyasından yönetilir
+- Tüm marka metinleri `lib/brand.ts` ve `content/waypla.ts` (Source of Truth) dosyasından yönetilir
 - Pricing engine `lib/pricing/engine.ts` dosyasında izole edilmiştir
 - Ödeme entegrasyonu şu an stub olarak çalışmaktadır
-- Dosya yükleme (hasar fotoğrafları) şu an devre dışıdır (ileride S3/Supabase Storage'a hazır)
+- Dosya yükleme (hasar fotoğrafları) için Supabase Storage entegrasyonu gereklidir
+
+### Veritabanı ve Storage Kurulumu (MVP)
+
+1. **Schema Güncellemesi**: Claim ve Profile tabloları güncellendi.
+```bash
+npx prisma migrate dev --name add_claim_and_profile_fields
+```
+
+2. **Storage Bucket**: Supabase projenizde `claim-attachments` adında bir private bucket oluşturun.
+- Policy: Kullanıcı sadece kendi yüklediği dosyaları görebilmeli (`auth.uid() = homeowner`).
+- Server-side upload için `app/api/claims/route.ts` içindeki TODO alanını Supabase Storage SDK ile güncelleyin.
+
+3. **RLS Politikaları**:
+- `profiles` tablosu: Kullanıcı sadece kendi profiline erişebilmeli.
+- `claims` tablosu: Kullanıcı sadece kendi taleplerini görebilmeli.
+- `addresses` tablosu: Kullanıcı sadece kendi adreslerini yönetebilmeli.
 
 ## 📄 Lisans
 

@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 export default function KVKKPage() {
   return (
     <div className="container mx-auto px-4 py-16">
@@ -21,5 +23,7 @@ export default function KVKKPage() {
     </div>
   );
 }
+
+
 
 

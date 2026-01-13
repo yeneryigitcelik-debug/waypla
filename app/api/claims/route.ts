@@ -1,49 +1,92 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
 
-const claimSchema = z.object({
-  policyId: z.string(),
-  incidentAt: z.string(),
-  description: z.string().min(10),
-  incidentType: z.string(),
-});
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user) {
+
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const data = claimSchema.parse(body);
+    const formData = await request.formData();
 
-    const claim = await prisma.claim.create({
-      data: {
-        policyId: data.policyId,
-        userId: session.user.id,
-        incidentAt: new Date(data.incidentAt),
-        description: data.description,
-        status: "CREATED",
-        attachments: {
-          incidentType: data.incidentType,
-        },
-      },
-    });
+    // Extract form fields
+    const deviceCategory = formData.get('deviceCategory') as string;
+    const deviceBrand = formData.get('deviceBrand') as string;
+    const deviceModel = formData.get('deviceModel') as string;
+    const purchaseDate = formData.get('purchaseDate') as string;
+    const serialNumber = formData.get('serialNumber') as string;
+    const claimType = formData.get('claimType') as string;
+    const incidentDate = formData.get('incidentDate') as string;
+    const incidentTime = formData.get('incidentTime') as string;
+    const description = formData.get('description') as string;
 
-    return NextResponse.json({ claim }, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
+    // Validate required fields
+    if (!deviceCategory || !deviceBrand || !deviceModel || !claimType || !incidentDate || !description) {
       return NextResponse.json(
-        { error: "Geçersiz veri", details: error.issues },
+        { error: "Required fields are missing" },
         { status: 400 }
       );
     }
 
+    // Create device snapshot
+    const deviceSnapshot = {
+      category: deviceCategory,
+      brand: deviceBrand,
+      model: deviceModel,
+      purchaseDate: purchaseDate || null,
+      serialNumber: serialNumber || null,
+    };
+
+    // Parse incident datetime
+    let incidentAt: Date;
+    try {
+      const dateStr = incidentDate + (incidentTime ? `T${incidentTime}` : 'T00:00');
+      incidentAt = new Date(dateStr);
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid incident date/time format" },
+        { status: 400 }
+      );
+    }
+
+    // Create claim
+    const claim = await prisma.claim.create({
+      data: {
+        userId: session.user.id,
+        deviceSnapshot,
+        claimType,
+        incidentAt,
+        description,
+        // status defaults to CREATED in schema
+      },
+    });
+
+    // Handle file uploads (placeholder - would need Supabase Storage setup)
+    const files = [];
+    for (const [key, value] of formData.entries()) {
+      if (key.startsWith('file_') && value instanceof File) {
+        files.push(value);
+      }
+    }
+
+    // TODO: Upload files to Supabase Storage and create claim_attachments records
+    // For now, just log the files
+    if (files.length > 0) {
+      console.log(`Claim ${claim.id}: ${files.length} files uploaded (not stored yet)`);
+    }
+
+    return NextResponse.json({
+      success: true,
+      claimId: claim.id,
+      message: "Claim created successfully",
+    });
+  } catch (error) {
+    console.error("Claim creation error:", error);
     return NextResponse.json(
-      { error: "Bir hata oluştu" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

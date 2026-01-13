@@ -49,7 +49,7 @@ export default function LoginPage() {
           setError("Email veya şifre hatalı");
         }
       } else if (result?.ok) {
-        router.push("/hesabim");
+        router.push("/");
         router.refresh();
       } else {
         setError("Beklenmeyen bir hata oluştu");

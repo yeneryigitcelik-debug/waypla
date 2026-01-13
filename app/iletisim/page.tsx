@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { brand } from "@/lib/brand";
 
+export const dynamic = "force-dynamic";
+
 const contactSchema = z.object({
   name: z.string().min(2, "İsim en az 2 karakter olmalı"),
   email: z.string().email("Geçerli bir email adresi girin"),
@@ -148,5 +150,7 @@ export default function ContactPage() {
     </div>
   );
 }
+
+
 
 

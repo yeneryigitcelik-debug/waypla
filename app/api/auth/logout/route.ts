@@ -1,0 +1,12 @@
+import { signOut } from "@/lib/auth";
+import { NextResponse } from "next/server";
+
+export async function POST() {
+  try {
+    await signOut({ redirectTo: "/" });
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+  
+  return NextResponse.redirect(new URL("/", process.env.NEXTAUTH_URL || "http://localhost:3100"));
+}

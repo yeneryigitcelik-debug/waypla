@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -64,6 +64,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  profile   Profile?
   devices   Device[]
   policies  Policy[]
   claims    Claim[]
@@ -71,6 +72,42 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@map("waypla_user")
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name      String?
+  avatarUrl String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address Address?
+
+  @@index([userId])
+  @@map("profile")
+}
+
+model Address {
+  id           String  @id @default(cuid())
+  profileId    String  @unique
+  label        String  @default("Ev") // Ev, İş, vb.
+  city         String
+  district     String
+  neighborhood String?
+  line1        String  // Adres satırı
+  postalCode   String?
+  isDefault    Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("address")
 }
 
 model Device {
@@ -89,6 +126,7 @@ model Device {
   policies Policy[]
 
   @@index([userId])
+  @@map("device")
 }
 
 model Plan {
@@ -109,6 +147,7 @@ model Plan {
 
   @@index([slug])
   @@index([isActive])
+  @@map("plan")
 }
 
 model Policy {
@@ -133,25 +172,29 @@ model Policy {
   @@index([userId])
   @@index([status])
   @@index([deviceId])
+  @@map("policy")
 }
 
 model Claim {
-  id          String      @id @default(cuid())
-  policyId    String
-  userId      String
-  status      ClaimStatus @default(CREATED)
-  incidentAt  DateTime
-  description String
-  attachments Json?       // array of file URLs
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id             String      @id @default(cuid())
+  policyId       String?     // Optional - claim can be created without policy
+  userId         String
+  status         ClaimStatus @default(CREATED)
+  claimType      String      // screen_crack, liquid_damage, not_working, physical_damage, theft, other
+  deviceSnapshot Json?       // Manual device info: {category, brand, model, purchaseDate, serialNumber}
+  incidentAt     DateTime
+  description    String
+  attachments    Json?       // array of file URLs
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policy Policy? @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([policyId])
   @@index([status])
+  @@map("claim")
 }
 
 model Partner {
@@ -165,6 +208,7 @@ model Partner {
   updatedAt  DateTime    @updatedAt
 
   @@index([apiKeyHash])
+  @@map("partner")
 }
 
 model ServiceCenter {
@@ -183,6 +227,7 @@ model ServiceCenter {
 
   @@index([city])
   @@index([isActive])
+  @@map("service_center")
 }
 
 model AuditLog {
@@ -199,4 +244,5 @@ model AuditLog {
   @@index([actorId])
   @@index([entity, entityId])
   @@index([createdAt])
+  @@map("audit_log")
 }
