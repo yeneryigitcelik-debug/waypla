@@ -62,6 +62,8 @@ NEXTAUTH_SECRET=change-this-to-a-random-secret-in-production
 DEVICEGU_DATABASE_URL="file:./prisma/deviceguvence.db"
 ```
 
+> **Not:** Production ortamında `NEXTAUTH_SECRET` zorunludur. Eksikse uygulama başlatılmaz.
+
 ## 👤 Demo Hesaplar
 
 Seed script çalıştırıldıktan sonra aşağıdaki hesaplar oluşturulur:
@@ -161,7 +163,7 @@ npm run prisma:seed        # Seed data ekle
 
 ## 🔐 Güvenlik Notları
 
-- Production'da `NEXTAUTH_SECRET` değerini güvenli bir değerle değiştirin
+- Production'da `NEXTAUTH_SECRET` zorunludur ve güvenli bir değerle ayarlanmalıdır
 - API anahtarları ve şifreler hash'lenmiş olarak saklanır
 - Rol bazlı erişim kontrolü uygulanmıştır
 

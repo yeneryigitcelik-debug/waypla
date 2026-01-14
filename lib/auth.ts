@@ -10,6 +10,17 @@ if (!prisma) {
   console.error("Prisma client is not initialized");
 }
 
+const isProduction = process.env.NODE_ENV === "production";
+const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+
+if (isProduction && !nextAuthSecret) {
+  throw new Error("NEXTAUTH_SECRET is required in production.");
+}
+
+if (!isProduction) {
+  console.warn("dev-only: NEXTAUTH_SECRET is not required in development, but set it for production.");
+}
+
 const authConfig: NextAuthConfig = {
   providers: [
     Credentials({
@@ -78,9 +89,11 @@ const authConfig: NextAuthConfig = {
   session: {
     strategy: "jwt" as const,
   },
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "fallback-secret-for-development-min-32-chars-long",
+  secret:
+    nextAuthSecret ??
+    process.env.AUTH_SECRET ??
+    "fallback-secret-for-development-min-32-chars-long",
   trustHost: true,
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
-
