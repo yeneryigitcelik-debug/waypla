@@ -14,13 +14,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, email, password } = registerSchema.parse(body);
     
-    console.log("[REGISTER] İstek alındı:", { email, name });
-
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
-    console.log("[REGISTER] Kullanıcı kontrolü tamamlandı:", !!existingUser);
 
     if (existingUser) {
       return NextResponse.json(
@@ -50,8 +47,6 @@ export async function POST(request: Request) {
       },
     });
     
-    console.log("[REGISTER] Kullanıcı başarıyla oluşturuldu:", user.id);
-
     return NextResponse.json(
       { message: "Kayıt başarılı", userId: user.id },
       { status: 201 }
@@ -66,11 +61,12 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error("Register error:", error);
-    
+    const errorName = error instanceof Error ? error.name : "UnknownError";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("[REGISTER] Error", { errorName, errorStack });
+
     // Better error messaging
     const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
-    console.error("[REGISTER] Hata detayları:", { errorMessage, errorType: error?.constructor?.name });
     
     // Check for specific database errors
     if (errorMessage.includes("Authentication failed") || errorMessage.includes("FATAL")) {
@@ -93,4 +89,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
