@@ -41,7 +41,9 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      if (result?.error) {
+      if (result?.status === 429) {
+        setError("Çok fazla giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin.");
+      } else if (result?.error) {
         console.error("Sign in error:", result.error);
         if (result.error.includes("JSON") || result.error.includes("DOCTYPE")) {
           setError("Sunucu hatası. Lütfen daha sonra tekrar deneyin.");

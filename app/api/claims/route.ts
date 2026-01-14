@@ -1,13 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  checkRateLimit,
+  createRateLimitResponse,
+  getClientIp,
+} from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request);
     const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const [ipLimit, userLimit] = await Promise.all([
+      checkRateLimit({
+        key: `claims:create:ip:${ip}`,
+        limit: 15,
+        windowMs: 60 * 60 * 1000,
+      }),
+      checkRateLimit({
+        key: `claims:create:user:${session.user.id}`,
+        limit: 5,
+        windowMs: 60 * 60 * 1000,
+      }),
+    ]);
+
+    if (!ipLimit.allowed || !userLimit.allowed) {
+      const limitResult = ipLimit.allowed ? userLimit : ipLimit;
+      return createRateLimitResponse(limitResult);
     }
 
     const formData = await request.formData();
@@ -91,4 +115,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

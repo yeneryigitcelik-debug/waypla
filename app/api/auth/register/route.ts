@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import {
+  checkRateLimit,
+  createRateLimitResponse,
+  getClientIp,
+} from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   name: z.string().min(2, "İsim en az 2 karakter olmalı"),
@@ -11,14 +16,34 @@ const registerSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
     const body = await request.json();
     const { name, email, password } = registerSchema.parse(body);
     
     console.log("[REGISTER] İstek alındı:", { email, name });
 
+    const normalizedEmail = email.trim().toLowerCase();
+    const [ipLimit, emailLimit] = await Promise.all([
+      checkRateLimit({
+        key: `auth:register:ip:${ip}`,
+        limit: 10,
+        windowMs: 15 * 60 * 1000,
+      }),
+      checkRateLimit({
+        key: `auth:register:email:${normalizedEmail}`,
+        limit: 5,
+        windowMs: 60 * 60 * 1000,
+      }),
+    ]);
+
+    if (!ipLimit.allowed || !emailLimit.allowed) {
+      const limitResult = ipLimit.allowed ? emailLimit : ipLimit;
+      return createRateLimitResponse(limitResult);
+    }
+
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
     console.log("[REGISTER] Kullanıcı kontrolü tamamlandı:", !!existingUser);
 
@@ -36,7 +61,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.create({
       data: {
         name,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         role: "CUSTOMER",
         profile: {
@@ -93,4 +118,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

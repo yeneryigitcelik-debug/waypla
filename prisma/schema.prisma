@@ -197,6 +197,18 @@ model Claim {
   @@map("claim")
 }
 
+model RateLimit {
+  key         String   @id
+  count       Int      @default(1)
+  windowStart DateTime
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@map("rate_limit")
+}
+
 model Partner {
   id         String      @id @default(cuid())
   name       String
