@@ -1,6 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const optionalTrimmedString = z.preprocess(
+  (value) => {
+    if (typeof value !== "string") {
+      return value;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  },
+  z.string()
+);
+
+const phoneRegex = /^[+]?[\d\s().-]{7,20}$/;
+const postalCodeRegex = /^\d{4,10}$/;
+
+const profileSchema = z
+  .object({
+    name: optionalTrimmedString.max(120).optional(),
+    phone: optionalTrimmedString.regex(phoneRegex, "Invalid phone number").optional(),
+    city: optionalTrimmedString.max(100).optional(),
+    district: optionalTrimmedString.max(100).optional(),
+    neighborhood: optionalTrimmedString.max(100).optional(),
+    line1: optionalTrimmedString.max(200).optional(),
+    postalCode: optionalTrimmedString
+      .regex(postalCodeRegex, "Invalid postal code")
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasAnyAddress =
+      Boolean(data.city) ||
+      Boolean(data.district) ||
+      Boolean(data.neighborhood) ||
+      Boolean(data.line1) ||
+      Boolean(data.postalCode);
+
+    if (!hasAnyAddress) {
+      return;
+    }
+
+    if (!data.city) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "City is required when providing an address",
+        path: ["city"],
+      });
+    }
+
+    if (!data.district) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "District is required when providing an address",
+        path: ["district"],
+      });
+    }
+
+    if (!data.line1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Address line is required when providing an address",
+        path: ["line1"],
+      });
+    }
+  });
+
+const formatValidationIssues = (error: z.ZodError) =>
+  error.issues.map((issue) => {
+    const path = issue.path.length > 0 ? `${issue.path.join(".")}: ` : "";
+    return `${path}${issue.message}`;
+  });
 
 export async function GET() {
   try {
@@ -39,8 +109,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, phone, city, district, neighborhood, line1, postalCode } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid request", issues: ["body: Invalid JSON payload"] },
+        { status: 400 }
+      );
+    }
+
+    const parsed = profileSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: "Invalid request",
+          issues: formatValidationIssues(parsed.error),
+        },
+        { status: 400 }
+      );
+    }
+
+    const { name, phone, city, district, neighborhood, line1, postalCode } = parsed.data;
 
     // Upsert profile
     const profile = await prisma.profile.upsert({
