@@ -23,11 +23,11 @@ npm run prisma:generate
 
 # Migration çalıştırın (veritabanı otomatik oluşturulur)
 # Windows PowerShell:
-$env:DEVICEGU_DATABASE_URL="file:./prisma/deviceguvence.db"; npx prisma migrate dev
+$env:DATABASE_URL="file:./prisma/deviceguvence.db"; npx prisma migrate dev
 
 # Seed data ekleyin (eğer tsx ile sorun yaşarsanız, seed.ts dosyasını manuel olarak çalıştırabilirsiniz)
 # Windows PowerShell:
-$env:DEVICEGU_DATABASE_URL="file:./prisma/deviceguvence.db"; npx tsx prisma/seed.ts
+$env:DATABASE_URL="file:./prisma/deviceguvence.db"; npx tsx prisma/seed.ts
 ```
 
 **Not:** Seed script çalışmazsa, demo hesapları manuel olarak oluşturabilirsiniz veya Prisma Studio üzerinden ekleyebilirsiniz.
@@ -49,7 +49,7 @@ Uygulama http://localhost:3100 adresinde çalışacaktır.
 ### Veritabanı
 
 - **Varsayılan**: SQLite (`prisma/deviceguvence.db`)
-- **Environment Variable**: `DEVICEGU_DATABASE_URL` (DATABASE_URL değil)
+- **Environment Variable**: `DATABASE_URL`
 
 ### Environment Variables
 
@@ -59,7 +59,7 @@ Uygulama http://localhost:3100 adresinde çalışacaktır.
 PORT=3100
 NEXTAUTH_URL=http://localhost:3100
 NEXTAUTH_SECRET=change-this-to-a-random-secret-in-production
-DEVICEGU_DATABASE_URL="file:./prisma/deviceguvence.db"
+DATABASE_URL="file:./prisma/deviceguvence.db"
 ```
 
 ## 👤 Demo Hesaplar
@@ -182,9 +182,9 @@ npm run prisma:seed        # Seed data ekle
 
 SQLite'dan PostgreSQL'e geçmek için:
 
-1. `.env.local` dosyasında `DEVICEGU_DATABASE_URL` değerini PostgreSQL connection string ile değiştirin:
+1. `.env.local` dosyasında `DATABASE_URL` değerini PostgreSQL connection string ile değiştirin:
 ```env
-DEVICEGU_DATABASE_URL="postgresql://user:password@localhost:5432/deviceguvence?schema=public"
+DATABASE_URL="postgresql://user:password@localhost:5432/deviceguvence?schema=public"
 ```
 
 2. `prisma/schema.prisma` dosyasında datasource provider'ı değiştirin:
