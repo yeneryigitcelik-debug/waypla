@@ -52,7 +52,11 @@ export default function RegisterPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || "Kayıt başarısız");
+        if (response.status === 429) {
+          setError(result.message || result.error || "Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin.");
+          return;
+        }
+        setError(result.error || result.message || "Kayıt başarısız");
       } else {
         router.push("/giris?registered=true");
       }

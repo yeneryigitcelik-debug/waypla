@@ -3,6 +3,11 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash, createHmac } from "crypto";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  checkRateLimit,
+  createRateLimitResponse,
+  getClientIp,
+} from "@/lib/rate-limit";
 
 const DEFAULT_ALLOWED_MIME_TYPES = [
   "image/jpeg",
@@ -196,10 +201,29 @@ const uploadToS3 = async (
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request);
     const session = await auth();
 
     if (!session?.user?.id) {
       return errorResponse(401, "UNAUTHORIZED", "Unauthorized");
+    }
+
+    const [ipLimit, userLimit] = await Promise.all([
+      checkRateLimit({
+        key: `claims:create:ip:${ip}`,
+        limit: 15,
+        windowMs: 60 * 60 * 1000,
+      }),
+      checkRateLimit({
+        key: `claims:create:user:${session.user.id}`,
+        limit: 5,
+        windowMs: 60 * 60 * 1000,
+      }),
+    ]);
+
+    if (!ipLimit.allowed || !userLimit.allowed) {
+      const limitResult = ipLimit.allowed ? userLimit : ipLimit;
+      return createRateLimitResponse(limitResult);
     }
 
     const formData = await request.formData();

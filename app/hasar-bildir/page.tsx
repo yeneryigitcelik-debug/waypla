@@ -123,7 +123,7 @@ export default function ClaimReportPage() {
         }, 3000);
       } else {
         const error = await response.json();
-        setMessage({ type: 'error', text: error.message || 'Bir hata oluştu.' });
+        setMessage({ type: 'error', text: error.message || error.error || 'Bir hata oluştu.' });
       }
     } catch (error) {
       console.error('Claim submission error:', error);
