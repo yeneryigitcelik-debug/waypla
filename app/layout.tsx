@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { ToastProvider } from "@/components/ui/Toast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,9 +35,12 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-display antialiased bg-background-light dark:bg-background-dark text-[#111418] dark:text-white`}>
         <SessionProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </SessionProvider>
       </body>
     </html>
   );
 }
+

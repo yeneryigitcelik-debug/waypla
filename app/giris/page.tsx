@@ -56,9 +56,9 @@ export default function LoginPage() {
       } else {
         setError("Beklenmeyen bir hata oluştu");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Sign in error:", err);
-      const errorMessage = err?.message || "Bir hata oluştu. Lütfen tekrar deneyin.";
+      const errorMessage = err instanceof Error ? err.message : "Bir hata oluştu. Lütfen tekrar deneyin.";
       if (errorMessage.includes("JSON") || errorMessage.includes("DOCTYPE")) {
         setError("Sunucu hatası. Lütfen daha sonra tekrar deneyin.");
       } else {
@@ -87,7 +87,7 @@ export default function LoginPage() {
                   {error}
                 </div>
               )}
-              
+
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-[#111418] dark:text-white mb-2">
                   E-posta

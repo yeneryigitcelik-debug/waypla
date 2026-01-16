@@ -8,6 +8,17 @@ const nextConfig: NextConfig = {
   },
   // Disable static optimization for dynamic routes
   staticPageGenerationTimeout: 120,
+  // Configure remote image patterns for Next.js Image component
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
+

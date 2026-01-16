@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,246 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  password  String?
+  role      UserRole   @default(CUSTOMER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  auditLogs AuditLog[]
+  claims    Claim[]
+  devices   Device[]
+  policies  Policy[]
+  profile   Profile?
+  reviews   Review[]
+
+  @@index([email])
+  @@index([role])
+  @@map("waypla_user")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  userId      String
+  rating      Int      @default(5)
+  comment     String
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isPublished])
+  @@map("review")
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name      String?
+  avatarUrl String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  address   Address?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("profile")
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  profileId    String   @unique
+  label        String   @default("Ev")
+  city         String
+  district     String
+  neighborhood String?
+  line1        String
+  postalCode   String?
+  isDefault    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("address")
+}
+
+model DeviceCatalog {
+  id          String   @id @default(cuid())
+  brand       String
+  model       String
+  storage     String?
+  category    String
+  marketPrice Float
+  releaseYear Int?
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  devices     Device[]
+
+  @@unique([brand, model, storage])
+  @@index([category])
+  @@index([brand])
+  @@index([isActive])
+  @@map("device_catalog")
+}
+
+model Device {
+  id            String         @id @default(cuid())
+  userId        String
+  category      String
+  brand         String
+  model         String
+  purchaseDate  DateTime
+  declaredValue Float
+  serialNumber  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  catalogId     String?
+  priceSnapshot Float?
+  catalog       DeviceCatalog? @relation(fields: [catalogId], references: [id])
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policies      Policy[]
+
+  @@index([userId])
+  @@index([catalogId])
+  @@map("device")
+}
+
+model Plan {
+  id              String       @id @default(cuid())
+  slug            String       @unique
+  name            String
+  description     String?
+  coverageType    CoverageType
+  termType        TermType
+  basePrice       Float
+  deductibleRules Json
+  limits          Json
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  policies        Policy[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("plan")
+}
+
+model Policy {
+  id          String       @id @default(cuid())
+  userId      String
+  deviceId    String
+  planId      String
+  status      PolicyStatus @default(PENDING)
+  startAt     DateTime?
+  endAt       DateTime?
+  paymentMode String
+  premium     Float
+  documentUrl String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  claims      Claim[]
+  device      Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  plan        Plan         @relation(fields: [planId], references: [id])
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([deviceId])
+  @@map("policy")
+}
+
+model Claim {
+  id             String       @id @default(cuid())
+  policyId       String?
+  userId         String
+  status         ClaimStatus  @default(CREATED)
+  incidentAt     DateTime
+  description    String
+  attachments    Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  claimType      String
+  deviceSnapshot Json?
+  policy         Policy?      @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos         ClaimPhoto[]
+
+  @@index([userId])
+  @@index([policyId])
+  @@index([status])
+  @@map("claim")
+}
+
+model ClaimPhoto {
+  id        String   @id @default(cuid())
+  claimId   String
+  url       String
+  fileName  String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
+  claim     Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@map("claim_photo")
+}
+
+model Partner {
+  id         String      @id @default(cuid())
+  name       String
+  type       PartnerType
+  apiKeyHash String      @unique
+  webhookUrl String?
+  status     String      @default("active")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([apiKeyHash])
+  @@map("partner")
+}
+
+model ServiceCenter {
+  id         String   @id @default(cuid())
+  name       String
+  city       String
+  district   String
+  address    String?
+  phone      String?
+  email      String?
+  categories Json
+  slaDays    Int      @default(7)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([city])
+  @@index([isActive])
+  @@map("service_center")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  entity    String
+  entityId  String
+  meta      Json?
+  createdAt DateTime @default(now())
+  actor     User     @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_log")
 }
 
 enum UserRole {
@@ -53,6 +290,7 @@ enum PartnerType {
   OPERATOR
   BANK
 }
+<<<<<<< HEAD
 
 model User {
   id        String   @id @default(cuid())
@@ -257,3 +495,5 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_log")
 }
+=======
+>>>>>>> dd786a0 (feat: Add admin dashboard with sidebar layout, stats, plans & reviews management)

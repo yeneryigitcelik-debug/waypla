@@ -29,14 +29,17 @@ const authConfig: NextAuthConfig = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("[Auth] Authorize called with email:", credentials?.email);
+
         if (!credentials?.email || !credentials?.password) {
+          console.log("[Auth] Missing email or password");
           return null;
         }
 
         try {
           // Ensure Prisma is available
           if (!prisma) {
-            console.error("Prisma client is not available");
+            console.error("[Auth] Prisma client is not available");
             return null;
           }
 
@@ -44,16 +47,24 @@ const authConfig: NextAuthConfig = {
             where: { email: credentials.email as string },
           });
 
-          if (!user || !user.password) {
+          if (!user) {
+            console.log("[Auth] User not found:", credentials.email);
+            return null;
+          }
+
+          if (!user.password) {
+            console.log("[Auth] User has no password set:", credentials.email);
             return null;
           }
 
           const isValid = await bcrypt.compare(credentials.password as string, user.password);
 
           if (!isValid) {
+            console.log("[Auth] Invalid password for:", credentials.email);
             return null;
           }
 
+          console.log("[Auth] Login successful for:", credentials.email);
           return {
             id: user.id,
             email: user.email,
@@ -61,7 +72,7 @@ const authConfig: NextAuthConfig = {
             role: user.role,
           };
         } catch (error) {
-          console.error("Auth error:", error);
+          console.error("[Auth] Error during authorization:", error);
           return null;
         }
       },
