@@ -8,7 +8,7 @@ export interface CatalogDevice {
     id: string;
     brand: string;
     model: string;
-    storage: string | null;
+    storage: string;
     category: string;
     marketPrice: number;
     releaseYear: number | null;
@@ -24,7 +24,7 @@ export interface BrandWithCount {
 export interface ModelWithStorage {
     model: string;
     storageOptions: {
-        storage: string | null;
+        storage: string;
         id: string;
         marketPrice: number;
     }[];
@@ -88,7 +88,7 @@ export async function getModels(brand: string, category?: string): Promise<Model
             });
         }
         modelMap.get(device.model)!.storageOptions.push({
-            storage: device.storage,
+            storage: device.storage || "",
             id: device.id,
             marketPrice: device.marketPrice,
         });
@@ -128,7 +128,7 @@ export async function getCatalogDevice(id: string): Promise<CatalogDevice | null
         id: device.id,
         brand: device.brand,
         model: device.model,
-        storage: device.storage,
+        storage: device.storage || "",
         category: device.category,
         marketPrice: device.marketPrice,
         releaseYear: device.releaseYear,
@@ -157,7 +157,7 @@ export async function searchCatalogDevices(query: string, limit = 10): Promise<C
         id: d.id,
         brand: d.brand,
         model: d.model,
-        storage: d.storage,
+        storage: d.storage || "",
         category: d.category,
         marketPrice: d.marketPrice,
         releaseYear: d.releaseYear,
@@ -195,7 +195,7 @@ export async function getAllCatalogDevices(
             id: d.id,
             brand: d.brand,
             model: d.model,
-            storage: d.storage,
+            storage: d.storage || "",
             category: d.category,
             marketPrice: d.marketPrice,
             releaseYear: d.releaseYear,
@@ -282,7 +282,7 @@ export async function createCatalogDevice(
         data: {
             brand: input.brand,
             model: input.model,
-            storage: input.storage || null,
+            storage: input.storage || "",
             category: input.category,
             marketPrice: input.marketPrice,
             releaseYear: input.releaseYear || null,
@@ -294,7 +294,7 @@ export async function createCatalogDevice(
         id: device.id,
         brand: device.brand,
         model: device.model,
-        storage: device.storage,
+        storage: device.storage || "",
         category: device.category,
         marketPrice: device.marketPrice,
         releaseYear: device.releaseYear,
@@ -323,7 +323,7 @@ export async function updateCatalogDevice(
         id: device.id,
         brand: device.brand,
         model: device.model,
-        storage: device.storage,
+        storage: device.storage || "",
         category: device.category,
         marketPrice: device.marketPrice,
         releaseYear: device.releaseYear,

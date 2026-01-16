@@ -80,7 +80,7 @@ model DeviceCatalog {
   id          String   @id @default(cuid())
   brand       String
   model       String
-  storage     String?
+  storage     String    @default("")
   category    String
   marketPrice Float
   releaseYear Int?
@@ -289,4 +289,41 @@ enum PartnerType {
   ECOMMERCE
   OPERATOR
   BANK
+}
+
+model RateLimit {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([key])
+  @@map("rate_limit")
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model Transaction {
+  id           String            @id @default(cuid())
+  userId       String
+  policyId     String?
+  amount       Float
+  currency     String            @default("TRY")
+  status       TransactionStatus @default(PENDING)
+  provider     String
+  providerTxId String?           @unique
+  metadata     Json?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  
+  @@index([providerTxId])
+  @@index([userId])
+  @@map("transaction")
 }

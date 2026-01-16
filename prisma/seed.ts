@@ -54,12 +54,12 @@ async function main() {
     { brand: "Samsung", model: "Galaxy Tab S9+", storage: "256GB", category: "tablet", marketPrice: 35000, releaseYear: 2023 },
 
     // Apple Watch
-    { brand: "Apple", model: "Watch Ultra 2", storage: null, category: "watch", marketPrice: 32000, releaseYear: 2023 },
+    { brand: "Apple", model: "Watch Ultra 2", storage: "Standard", category: "watch", marketPrice: 32000, releaseYear: 2023 },
     { brand: "Apple", model: "Watch Series 9", storage: "45mm", category: "watch", marketPrice: 18000, releaseYear: 2023 },
     { brand: "Apple", model: "Watch SE", storage: "44mm", category: "watch", marketPrice: 12000, releaseYear: 2023 },
 
     // Samsung Watch
-    { brand: "Samsung", model: "Galaxy Watch Ultra", storage: null, category: "watch", marketPrice: 25000, releaseYear: 2024 },
+    { brand: "Samsung", model: "Galaxy Watch Ultra", storage: "Standard", category: "watch", marketPrice: 25000, releaseYear: 2024 },
     { brand: "Samsung", model: "Galaxy Watch 6 Classic", storage: "47mm", category: "watch", marketPrice: 15000, releaseYear: 2023 },
   ];
 

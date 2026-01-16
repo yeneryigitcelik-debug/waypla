@@ -4,10 +4,11 @@ import {
   createRateLimitResponse,
   getClientIp,
 } from "@/lib/rate-limit";
+import { NextRequest } from "next/server";
 
 export const { GET } = handlers;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const requestClone = request.clone();
   let email = "unknown";

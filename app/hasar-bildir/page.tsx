@@ -109,15 +109,10 @@ export default function ClaimReportPage() {
           router.push('/hesabim/hasarlar');
         }, 3000);
       } else {
-<<<<<<< HEAD
-        const error = await response.json();
-        setMessage({ type: 'error', text: error.message || error.error || 'Bir hata oluştu.' });
-=======
         setMessage({
           type: 'error',
           text: result.error || 'Bir hata oluştu. Lütfen tekrar deneyin.'
         });
->>>>>>> dd786a0 (feat: Add admin dashboard with sidebar layout, stats, plans & reviews management)
       }
     } catch (error) {
       console.error('Claim submission error:', error);
@@ -184,17 +179,17 @@ export default function ClaimReportPage() {
                 <div
                   key={step.number}
                   className={`flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 py-5 px-3 transition-all ${currentStep === step.number
-                      ? 'bg-accent/5 dark:bg-accent/10'
-                      : currentStep > step.number
-                        ? 'bg-green-50 dark:bg-green-900/10'
-                        : ''
+                    ? 'bg-accent/5 dark:bg-accent/10'
+                    : currentStep > step.number
+                      ? 'bg-green-50 dark:bg-green-900/10'
+                      : ''
                     }`}
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all shadow-lg ${currentStep === step.number
-                      ? 'bg-accent text-white shadow-accent/30'
-                      : currentStep > step.number
-                        ? 'bg-green-500 text-white shadow-green-500/30'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
+                    ? 'bg-accent text-white shadow-accent/30'
+                    : currentStep > step.number
+                      ? 'bg-green-500 text-white shadow-green-500/30'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
                     }`}>
                     {currentStep > step.number ? (
                       <span className="material-symbols-outlined text-lg">check</span>
@@ -204,8 +199,8 @@ export default function ClaimReportPage() {
                   </div>
                   <div className="text-center sm:text-left">
                     <p className={`font-bold text-xs sm:text-sm ${currentStep >= step.number
-                        ? 'text-primary dark:text-white'
-                        : 'text-gray-400'
+                      ? 'text-primary dark:text-white'
+                      : 'text-gray-400'
                       }`}>
                       {step.title}
                     </p>
@@ -219,8 +214,8 @@ export default function ClaimReportPage() {
               {/* Message */}
               {message && (
                 <div className={`p-4 rounded-xl mb-8 flex items-start gap-3 animate-slide-up ${message.type === 'success'
-                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
-                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                  ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
+                  : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
                   }`}>
                   <span className="material-symbols-outlined text-xl mt-0.5 shrink-0">
                     {message.type === 'success' ? 'check_circle' : 'error'}
@@ -244,13 +239,13 @@ export default function ClaimReportPage() {
                             key={cat.value}
                             onClick={() => setValue("deviceCategory", cat.value, { shouldValidate: true })}
                             className={`cursor-pointer rounded-xl border-2 p-4 flex flex-col items-center gap-2 transition-all hover:scale-105 ${selectedDeviceCategory === cat.value
-                                ? 'border-accent bg-accent/5 shadow-lg shadow-accent/10'
-                                : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-[#22303e] hover:border-gray-300 dark:hover:border-gray-600'
+                              ? 'border-accent bg-accent/5 shadow-lg shadow-accent/10'
+                              : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-[#22303e] hover:border-gray-300 dark:hover:border-gray-600'
                               }`}
                           >
                             <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${selectedDeviceCategory === cat.value
-                                ? 'bg-accent text-white shadow-lg shadow-accent/30'
-                                : 'bg-white dark:bg-[#1a2634] text-gray-400'
+                              ? 'bg-accent text-white shadow-lg shadow-accent/30'
+                              : 'bg-white dark:bg-[#1a2634] text-gray-400'
                               }`}>
                               <span className="material-symbols-outlined text-xl">{cat.icon}</span>
                             </div>
@@ -332,8 +327,8 @@ export default function ClaimReportPage() {
                             key={type.value}
                             onClick={() => setValue("claimType", type.value, { shouldValidate: true })}
                             className={`cursor-pointer rounded-xl border-l-4 p-5 transition-all hover:scale-[1.02] ${selectedClaimType === type.value
-                                ? 'border-l-accent bg-white dark:bg-[#22303e] ring-2 ring-accent ring-opacity-20 shadow-lg'
-                                : 'border-l-transparent bg-gray-50 dark:bg-[#22303e] hover:bg-gray-100 dark:hover:bg-gray-800'
+                              ? 'border-l-accent bg-white dark:bg-[#22303e] ring-2 ring-accent ring-opacity-20 shadow-lg'
+                              : 'border-l-transparent bg-gray-50 dark:bg-[#22303e] hover:bg-gray-100 dark:hover:bg-gray-800'
                               }`}
                           >
                             <span className={`font-bold block ${selectedClaimType === type.value ? 'text-accent' : 'text-primary dark:text-white'
